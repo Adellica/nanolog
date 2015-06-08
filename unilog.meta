@@ -1,0 +1,4 @@
+;; -*- scheme -*-
+((author Adellica)
+ (license "MIT")
+ (depends nrepl reser spiffy uri-common intarweb))

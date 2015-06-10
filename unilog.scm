@@ -1,4 +1,4 @@
-(use spiffy intarweb uri-common srfi-18 nrepl reser persistent-hash-map)
+(use files spiffy intarweb uri-common srfi-18 nrepl reser persistent-hash-map posix)
 
 (define store-root (make-parameter #f))
 

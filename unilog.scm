@@ -1,9 +1,12 @@
 (use spiffy intarweb uri-common srfi-18 nrepl reser persistent-hash-map)
 
+(define store-root (make-parameter #f))
+
 (define cla command-line-arguments)
-(if (= 1 (length (cla)))
-    (server-port (string->number (car (cla))))
-    (error "usage: <port>"))
+(cond ((= 2 (length (cla)))
+       (store-root (car (cla)))
+       (server-port (string->number (cadr (cla)))))
+      (else (error "usage: <storage-path> <port>")))
 
 (define (app r)
   ;; try to make a serializeable scheme object from request (replace
@@ -11,12 +14,18 @@
   (let ((reqobj `((ts . ,(current-seconds))
                   (remote . ,(remote-address))
                   ,@(map->alist (map-update-in r '(uri) uri->list)))))
-    (define (show)
-      (write reqobj) (display "\n") (flush-output))
 
-    (with-output-to-port (current-output-port) show)
+    (define filename (conc (time->string (seconds->utc-time) "%Y-%m") ".scm"))
+    (define (show x) (pp x) (flush-output))
+
+    (define (append obj)
+      (let ((port (open-output-file* (file-open filename (+ open/write open/append open/creat)))))
+        (pp obj port)
+        (close-output-port port)))
+
+    (append reqobj)
     (with-output-to-port (current-error-port) show)
-    (response body: "ok\n")))
+    (response body: "{\"status\" : \"ok\"}\n")))
 
 (define handler (wrap-errors app))
 

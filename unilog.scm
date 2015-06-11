@@ -8,6 +8,8 @@
        (server-port (string->number (cadr (cla)))))
       (else (error "usage: <storage-path> <port>")))
 
+(system "ip -4 -o a") ;; give a hint on which url the server can be reached on
+
 ;;(req->filename #f)
 (define (req->filename r)
   (create-directory (store-root) #t)

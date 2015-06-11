@@ -8,6 +8,18 @@
        (server-port (string->number (cadr (cla)))))
       (else (error "usage: <storage-path> <port>")))
 
+;;(req->filename #f)
+(define (req->filename r)
+  (create-directory (store-root) #t)
+  (make-pathname (store-root)
+                 (conc (time->string (seconds->utc-time) "%Y-%m") ".scm")))
+
+;; append object to filename and flush.
+(define (save object filename)
+  (let ((port (open-output-file* (file-open filename (+ open/write open/append open/creat)))))
+    (pp object port)
+    (close-output-port port)))
+
 (define (app r)
   ;; try to make a serializeable scheme object from request (replace
   ;; records with lists etc)
@@ -15,16 +27,12 @@
                   (remote . ,(remote-address))
                   ,@(map->alist (map-update-in r '(uri) uri->list)))))
 
-    (define filename (conc (time->string (seconds->utc-time) "%Y-%m") ".scm"))
-    (define (show x) (pp x) (flush-output))
+    ;; write directly to file:
+    (save reqobj (req->filename r))
+    ;; write to stderr too for nice debugging:
+    (with-output-to-port (current-error-port)
+      (lambda () (pp reqobj) (flush-output)))
 
-    (define (append obj)
-      (let ((port (open-output-file* (file-open filename (+ open/write open/append open/creat)))))
-        (pp obj port)
-        (close-output-port port)))
-
-    (append reqobj)
-    (with-output-to-port (current-error-port) show)
     (response body: "{\"status\" : \"ok\"}\n")))
 
 (define handler (wrap-errors app))

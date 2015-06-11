@@ -35,7 +35,7 @@
 
     (response body: "{\"status\" : \"ok\"}\n")))
 
-(define handler (wrap-errors app))
+(define handler (wrap-errors (wrap-log app)))
 
 (define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
 (define server-thread (thread-start! (lambda () (reser-start (lambda (r) (handler r))))))

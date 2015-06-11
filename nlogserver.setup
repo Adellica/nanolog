@@ -1,0 +1,5 @@
+;; -*- scheme -*-
+
+(compile nlogserver.scm)
+
+(install-program 'nlogserver '("nlogserver"))

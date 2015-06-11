@@ -1,5 +1,0 @@
-;; -*- scheme -*-
-
-(compile unilog.scm)
-
-(install-program 'unilog '("unilog"))

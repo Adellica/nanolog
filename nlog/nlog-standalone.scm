@@ -52,6 +52,7 @@
 
 ;; (send-log-http "hi from repl")
 
-(if (msg)
-    (send-log-http (msg))
-    (port-for-each send-log-http read-line))
+(if (msg) ;; msg from cla?
+    (send-log-http (msg)) ;; send it all
+    (port-for-each send-log-http read-line) ;; send line by line
+    )

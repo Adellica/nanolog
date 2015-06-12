@@ -1,6 +1,6 @@
 ;; -*- scheme -*-
 
-;; TODO: make a nlog non-standalone that talks to nlogd using nanomsg
+;; TODO: make a nlog talk to server via daemon so we don't halt everything
 
-(compile nlog-standalone.scm)
-(install-program 'nlog-standalone '("nlog-standalone"))
+(compile nlog.scm)
+(install-program 'nlog '("nlog"))

@@ -1,5 +1,6 @@
 ;; log to a server directly without any daemoning
 (use http-client uri-common intarweb posix)
+(define cla command-line-arguments)
 
 ;; linux-only obviously. string contains \x00-characters!
 (define (cmdline* pid)
@@ -17,7 +18,9 @@
              (if (string-prefix? "-" x) #f x)))
           (else #f))))
 
-(define cla command-line-arguments)
+(if (find (cut equal? "-h" <>) (cla))
+    (error "usage: [-m \"msg\"] [-u http://host.com:port] [/some/path/for/tagging]"))
+
 
 ;; #f or string
 (define (mac interface)

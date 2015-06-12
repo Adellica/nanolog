@@ -1,0 +1,6 @@
+;; -*- scheme -*-
+
+;; TODO: make a nlog non-standalone that talks to nlogd using nanomsg
+
+(compile nlog-standalone.scm)
+(install-program 'nlog-standalone '("nlog-standalone"))

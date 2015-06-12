@@ -25,8 +25,9 @@
    (and (regular-file? file)
         (with-input-from-file file read-line))))
 ;; (map mac '("wlan0" "eth0" "gone"))
+
 (define path (make-parameter (or (find (cut string-prefix? "/" <>) (cla)) "/")))
-(define base-url (make-parameter (or (option-do "-u" (cla)) "http://nlog")))
+(define base-url (make-parameter (or (option-do "-u" (cla)) "https://nanolog-tr.adellica.com")))
 (define msg (make-parameter (option-do "-m" (cla)))) ;; string or #f for stdin
 
 (define metadata

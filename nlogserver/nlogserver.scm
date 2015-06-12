@@ -45,8 +45,8 @@
 
 (server-port 443)
 (define listener (ssl-listen (server-port)))
-(ssl-load-certificate-chain! listener "/etc/ssl/adellica/adellica.com.crt")
-(ssl-load-private-key! listener "/etc/ssl/adellica/adellica.com.key")
+(ssl-load-certificate-chain! listener "/etc/ssl/server.crt")
+(ssl-load-private-key! listener "/etc/ssl/server.key")
 
 (define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
 (define server-thread (thread-start! (lambda ()

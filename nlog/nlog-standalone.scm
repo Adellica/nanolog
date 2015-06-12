@@ -19,6 +19,12 @@
 
 (define cla command-line-arguments)
 
+;; #f or string
+(define (mac interface)
+  (let ((file (conc  "/sys/class/net/" interface "/address")))
+   (and (regular-file? file)
+        (with-input-from-file file read-line))))
+;; (map mac '("wlan0" "eth0" "gone"))
 (define path (make-parameter (or (find (cut string-prefix? "/" <>) (cla)) "/")))
 (define base-url (make-parameter (or (option-do "-u" (cla)) "http://nlog")))
 (define msg (make-parameter (option-do "-m" (cla)))) ;; string or #f for stdin
@@ -30,6 +36,8 @@
        (msgnum ,(let ((out msgnum)) (set! msgnum (add1 msgnum)) out)) ;; 0-indexed
        (pcmdline ,(cmdline (parent-process-id)))
        (ts ,(current-seconds))
+       (wlan0 , (or (mac "wlan0") "N/A"))
+       (eth0 , (or (mac "eth0") "N/A"))
        (cid "LyJI9G5891jnDhvO5UPMxW63MRI="))))) ;; 160-bit client id TODO: use git commit
 
 ;; (pp (metadata))

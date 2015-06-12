@@ -39,8 +39,19 @@
 
 (define handler (wrap-errors (wrap-log app)))
 
+
+
+(use openssl)
+
+(server-port 443)
+(define listener (ssl-listen (server-port)))
+(ssl-load-certificate-chain! listener "/etc/ssl/adellica/adellica.com.crt")
+(ssl-load-private-key! listener "/etc/ssl/adellica/adellica.com.key")
+
 (define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
-(define server-thread (thread-start! (lambda () (reser-start (lambda (r) (handler r))))))
+(define server-thread (thread-start! (lambda ()
+                                       (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
+                                       (accept-loop listener ssl-accept))))
 
 
 (thread-join! server-thread)

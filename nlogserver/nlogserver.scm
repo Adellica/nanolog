@@ -40,18 +40,23 @@
 (define handler (wrap-errors (wrap-log (lambda (r) (app r)))))
 
 
+(define server-thread
+  (thread-start!
+   (lambda ()
+     (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
+     (start-server))))
 
-(use openssl)
+;; (use openssl)
 
-(server-port 443)
-(define listener (ssl-listen (server-port)))
-(ssl-load-certificate-chain! listener "/etc/ssl/server.crt")
-(ssl-load-private-key! listener "/etc/ssl/server.key")
+;; (server-port 443)
+;; (define listener (ssl-listen (server-port)))
+;; (ssl-load-certificate-chain! listener "/etc/ssl/server.crt")
+;; (ssl-load-private-key! listener "/etc/ssl/server.key")
 
-(define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
-(define server-thread (thread-start! (lambda ()
-                                       (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
-                                       (accept-loop listener ssl-accept))))
+;; (define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
+;; (define server-thread (thread-start! (lambda ()
+;;                                        (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
+;;                                        (accept-loop listener ssl-accept))))
 
 
-(thread-join! server-thread)
+;; (thread-join! server-thread)

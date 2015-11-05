@@ -37,7 +37,7 @@
 
     (response body: "{\"status\" : \"ok\"}\n")))
 
-(define handler (wrap-errors (wrap-log app)))
+(define handler (wrap-errors (wrap-log (lambda (r) (app r)))))
 
 
 

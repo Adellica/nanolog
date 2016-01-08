@@ -19,7 +19,8 @@
 ;; append object to filename and flush.
 (define (save object filename)
   (let ((port (open-output-file* (file-open filename (+ open/write open/append open/creat)))))
-    (pp object port)
+    (write object port)
+    (newline port)
     (close-output-port port)))
 
 (define (app r)

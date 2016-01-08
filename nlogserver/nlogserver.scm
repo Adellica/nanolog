@@ -68,7 +68,7 @@
         (else x)))
 ;; (serializable `(1 #( ,(make-uri) ) 2))
 
-(define (app r)
+(define (app-saver r)
   ;; try to make a serializeable scheme object from request (replace
   ;; records with lists etc)
   (let ((reqobj (serializable
@@ -83,6 +83,12 @@
       (lambda () (pp reqobj) (flush-output)))
 
     (response body: "{\"status\" : \"ok\"}\n")))
+
+(define (app r)
+  (if (equal? 'POST (alist-ref 'method r))
+      (app-saver r)
+      (begin (warn "ignoring GET " (alist-ref 'uri r))
+             (response status: 'bad-request body: "illegal request\n"))))
 
 (define server #f)
 (cond ((member "--ssl" (cla))

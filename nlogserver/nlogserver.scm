@@ -1,12 +1,12 @@
 (use files spiffy intarweb uri-common srfi-18 nrepl reser persistent-hash-map posix)
 
 (define store-root (make-parameter #f))
-
+;; (command-line-arguments '("./" "8080" "--ssl"))
 (define cla command-line-arguments)
-(cond ((= 2 (length (cla)))
+(cond ((>= (length (cla)) 2)
        (store-root (car (cla)))
        (server-port (string->number (cadr (cla)))))
-      (else (error "usage: <storage-path> <port>")))
+      (else (error "usage: <storage-path> <port> [--ssl]")))
 
 (system "ip -4 -o a") ;; give a hint on which url the server can be reached on
 
@@ -39,19 +39,22 @@
 
 (define handler (wrap-errors (wrap-log app)))
 
-
-
-(use openssl)
-
-(server-port 443)
-(define listener (ssl-listen (server-port)))
-(ssl-load-certificate-chain! listener "/etc/ssl/server.crt")
-(ssl-load-private-key! listener "/etc/ssl/server.key")
+(define server #f)
+(cond ((member "--ssl" (cla))
+       ;; https on (server-port)
+       (use openssl)
+       (define listener (ssl-listen (server-port)))
+       (ssl-load-certificate-chain! listener "/etc/ssl/server.crt")
+       (ssl-load-private-key! listener "/etc/ssl/server.key")
+       (set! server (lambda () (accept-loop listener ssl-accept))))
+      (else
+       ;; http on (server-port)
+       (set! server (lambda () (start-server)))))
 
 (define nrepl-thread  (thread-start! (lambda () (nrepl (+ 1 (server-port))))))
-(define server-thread (thread-start! (lambda ()
-                                       (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
-                                       (accept-loop listener ssl-accept))))
-
+(define server-thread
+  (thread-start! (lambda ()
+                   (vhost-map `((".*" . ,(lambda (c) (reser-handler handler)))))
+                   (server))))
 
 (thread-join! server-thread)

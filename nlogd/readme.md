@@ -9,6 +9,7 @@ This is the `nanolog` daemon. It accepts messages from IPC and forwards them to 
 
 ## config
 
+Want to test nlogd / nlog? Try this:
 ```
-((url . "http://127.0.0.1/"))
+$ echo '((url . "http://127.0.0.1:8080/"))' >> /etc/nanolog.config.scm
 ```

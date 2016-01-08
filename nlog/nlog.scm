@@ -21,6 +21,11 @@
 (if (find (cut equal? "-h" <>) (cla))
     (error "usage: [-m \"msg\"] [-u http://host.com:port] [/some/path/for/tagging]"))
 
+(define (default-config key)
+  (handle-exceptions
+   e #f
+   (alist-ref key (with-input-from-file "/etc/nanolog.config.scm" read))))
+
 
 ;; #f or string
 (define (mac interface)
@@ -30,7 +35,7 @@
 ;; (map mac '("wlan0" "eth0" "gone"))
 
 (define path (make-parameter (or (find (cut string-prefix? "/" <>) (cla)) "/")))
-(define base-url (make-parameter (or (option-do "-u" (cla)) "https://nanolog-tr.adellica.com")))
+(define base-url (make-parameter (or (option-do "-u" (cla)) (default-config 'url))))
 (define msg (make-parameter (option-do "-m" (cla)))) ;; string or #f for stdin
 
 (define metadata

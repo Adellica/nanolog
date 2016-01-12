@@ -8,6 +8,11 @@
 (if (member "-c" (command-line-arguments))
     (set! send-log send-log-http))
 
+(if (member "-h" (command-line-arguments))
+    (begin (print "usage: [-d / debug] [-c / no daemon] [msg1 ...]\n"
+                  "without msg arguments, sends line-by-line from stdin")
+           (exit 0)))
+
 (define (texts)
   (filter (lambda (x) (not (string-prefix? "-" x)))
           (command-line-arguments)))

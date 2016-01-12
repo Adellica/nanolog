@@ -10,6 +10,11 @@
 
 (define debug? (make-parameter #f))
 
+;; generate a random hex-string of length n
+(define (uid n)
+  (string-join
+   (list-tabulate n (lambda (x) (string-pad (format #f "~x" (random 256)) 2 #\0)))
+   ""))
 
 ;; ==================== config ====================
 ;; #f or a colon-formatted MAC string
@@ -21,11 +26,7 @@
 ;; session id is generated per nlog process invoking. there can be
 ;; multiple messages within a session (eg. multiple lines)
 (define session-id
-  (let ((sid (string-join
-              (list-tabulate 10
-                             (lambda (x) (string-pad
-                                     (format #f "~x" (random 256)) 2 #\0)))
-              "")))
+  (let ((sid (uid 10)))
     (lambda () sid)))
 
 ;; ====================

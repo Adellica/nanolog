@@ -75,12 +75,18 @@
                 method: 'POST
                 body: (alist-ref 'body message)))
 
+
+(define (debug-print message)
+  (print ";; message dump")
+  (write-json message)
+  (newline))
+
 ;; TODO: append mac address
 ;; TODO: cla for relative url?
 ;; message is alist or string (string should be JSON then)
 (define (send-log-http message)
   (if (debug?)
-      (begin (write-json message) (newline))
+      (debug-print message)
       (for-each
        (lambda (server)
          (with-input-from-request server
@@ -91,9 +97,12 @@
 
 ;; message is string (should be json) or alist
 (define (send-log-nanomsg message)
-  (define socket (nn-socket 'req))
-  (nn-connect socket (ipc))
-  (nn-send socket (if (string? message) message (json->string message)))
-  (print (nn-recv socket)))
+  (if (debug?)
+      (debug-print message)
+      (begin
+        (define socket (nn-socket 'req))
+        (nn-connect socket (ipc))
+        (nn-send socket (if (string? message) message (json->string message)))
+        (print (nn-recv socket)))))
 
 ;; (send-log-http (create-message "oh oh"))

@@ -12,9 +12,13 @@
 
 ;; default seed is second precision. this creates problems when we
 ;; spawn nlog multiple times within the same second.
-(randomize (inexact->exact (floor (+ (current-seconds)
-                                     (current-milliseconds)
-                                     (current-process-id)))))
+;;
+;; hack: fx+ does no type-checking and will use 64 bit doubles as
+;; 32-bit ints or similar. it should still give us the "randomness"
+;; that we need, though.
+(randomize (fx+ (fx+ (current-seconds)
+                     (current-milliseconds))
+                (current-process-id)))
 
 ;; generate a random hex-string of length n
 (define (uid n)

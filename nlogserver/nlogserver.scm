@@ -1,4 +1,4 @@
-(use files spiffy intarweb uri-common srfi-18 nrepl posix)
+(use files spiffy intarweb uri-common srfi-18 nrepl posix medea)
 
 
 ;; ==================== reser ====================
@@ -78,11 +78,19 @@
                    (remote . ,(remote-address))
                    ,@r))))
 
+    ;; convert body from json to scheme, if possible. otherwise, just
+    ;; keep it as a string. request payload as a string:
+    (define body (alist-ref 'body reqobj))
+
+    ;; rename body (request-body) to msg. msg typically contains a
+    ;; body field too (body of the message).
+    (define req (alist-update 'msg (or (read-json body) body)
+                              (alist-delete 'body reqobj)))
     ;; write directly to file:
-    (save reqobj (req->filename r))
+    (save req (req->filename r))
     ;; write to stderr too for nice debugging:
     (with-output-to-port (current-error-port)
-      (lambda () (pp reqobj) (flush-output)))
+      (lambda () (pp req) (flush-output)))
 
     (response body: "{\"status\" : \"ok\"}\n")))
 

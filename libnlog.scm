@@ -1,6 +1,5 @@
 ;; log to a server directly without any daemoning
-(use http-client uri-common intarweb posix)
-(define cla command-line-arguments)
+(use http-client uri-common intarweb posix medea)
 
 ;; linux-only obviously. string contains \x00-characters!
 (define (cmdline* pid)
@@ -9,26 +8,18 @@
   (with-output-to-string (lambda () (write (cmdline* pid)))))
 ;; (cmdline (current-process-id))
 
+(define debug? (make-parameter #f))
 
-;; (option-do "-m" '("hi" "-m" "message!"))
-(define (option-do option args)
-  (let ((rest (find-tail (cut equal? option <>) args)))
-    (cond ((and rest (pair? (cdr rest)))
-           (let ((x (cadr rest)))
-             (if (string-prefix? "-" x) #f x)))
-          (else #f))))
 
-(define debug? (member "-d" (cla)))
-
-(if (find (cut equal? "-h" <>) (cla))
-    (error "usage: [msg...] [-u http://host.com:port] [/some/path/for/tagging] [-d (debug)]"))
-
+;; ==================== config aids ====================
 ;; #f or string
 (define (mac interface)
   (let ((file (conc  "/sys/class/net/" interface "/address")))
    (and (regular-file? file)
         (with-input-from-file file read-line))))
 
+;; session id is generated per nlog process invoking. there can be
+;; multiple messages within a session (eg. multiple lines)
 (define session-id
   (let ((sid (string-join
               (list-tabulate 10
@@ -37,51 +28,49 @@
               "")))
     (lambda () sid)))
 
+;; ====================
 
-(define (default-config key)q
-  (handle-exceptions
-   e (begin (print "***** error when reading /etc/nanolog.config.scm")
-            (raise e))
-   (alist-ref key (eval `(begin ,@(with-input-from-file "/etc/nanolog.config.scm"
-                                    (lambda () (port-map identity read))))))))
 
-(define (default-base-url) (string-intersperse (default-config 'url) ""))
-(define (config-headers) (default-config 'headers))
-;; (map mac '("wlan0" "eth0" "gone"))
+(define (config #!optional key)
+  (define conf-alist
+    (handle-exceptions
+     e (begin (print "***** error when reading /etc/nanolog.config.scm")
+              (raise e))
+     (eval `(begin
+              ,@(with-input-from-file "/etc/nanolog.config.scm"
+                  (lambda () (port-map identity read)))))))
+  (if key (alist-ref key conf-alist) conf-alist))
 
-(define path (make-parameter (or (find (cut string-prefix? "/" <>) (cla)) "/")))
-(define base-url (make-parameter (or (option-do "-u" (cla)) (default-base-url))))
-(define msg (make-parameter (option-do "-m" (cla)))) ;; string or #f for stdin
 
-(define metadata
+(define create-message
   (let ((msgnum 0))
-   (lambda ()
-     `((pid ,(current-process-id)) ;; if we send multiple lines
-       (msgnum ,(let ((out msgnum)) (set! msgnum (add1 msgnum)) out)) ;; 0-indexed
-       (pcmdline ,(cmdline (parent-process-id)))
-       (ts ,(current-seconds))
-       ,@(config-headers)
-       (cid "LyJI9G5891jnDhvO5UPMxW63MRI="))))) ;; 160-bit client id TODO: use git commit
+    (lambda (body)
+      ;; TODO: add client version identifier
+      `((msgnum . ,(let ((out msgnum)) (set! msgnum (add1 msgnum)) out)) ;; 0-indexed
+        (pcmdline . ,(cmdline (parent-process-id)))
+        (ts . ,(current-seconds))
+        (body . ,body)
+        ,@ (config)))))
 
-;; (pp (metadata))
+;; (define message (create-message "i like cake"))
+;; (pp message)
 
-(define (construct-request)
-  (make-request uri: (uri-reference (conc (base-url) (path)))
+(define (message->request message)
+  (make-request uri: (uri-reference (alist-ref 'url message))
                 method: 'POST
-                headers: (headers (metadata))))
+                body: (alist-ref 'body message)))
 
-(define (show-request)
-  (print ";; headers used for request (content-length and request body not shown)")
-  (write-request (update-request (construct-request)
-                                 port: (current-error-port)))
-  (void))
 ;; TODO: append mac address
 ;; TODO: cla for relative url?
-(define (send-log-http msg)
-  (if debug? (show-request))
-  (with-input-from-request (construct-request) msg read-string))
+(define (send-log-http message)
+  (if (debug?)
+      (begin (print ";; this is a message HTTP request dump (content-length will appera in real request)")
+             (write-request (update-request (message->request message) port: (current-error-port)))
+             (write-json message (current-error-port))
+             (newline (current-error-port)))
+      (with-input-from-request (message->request message)
+                               (json->string (alist-delete 'url message))
+                               read-string)))
 
-(if (msg) ;; msg from cla?
-    (send-log-http (msg)) ;; send it all
-    (port-for-each send-log-http read-line) ;; send line by line
-    )
+
+;; (send-log-http (create-message "oh oh"))

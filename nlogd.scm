@@ -27,12 +27,17 @@
        (loop)))))
 
 (define (process-message message)
-  (handle-exceptions
-   e (begin
-       (pp (condition->list e))
-       (thread-sleep! 1) ;; no need to flood with messages etc
-       #f)
-   (send-log-http message)))
+  (condition-case
+   (send-log-http message)
+   (e (exn i/o net)
+      (print "nlogd error: "
+             (get-condition-property e 'exn 'message))
+      ;; calm down a bit
+      (thread-sleep! 1)
+      #f)
+   (e ()
+      (pp (condition->list e) (current-error-port))
+      #f)))
 
 (let loop ()
   (handle-exceptions

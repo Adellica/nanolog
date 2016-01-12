@@ -18,24 +18,39 @@
              (if (string-prefix? "-" x) #f x)))
           (else #f))))
 
+(define debug? (member "-d" (cla)))
+
 (if (find (cut equal? "-h" <>) (cla))
-    (error "usage: [-m \"msg\"] [-u http://host.com:port] [/some/path/for/tagging]"))
-
-(define (default-config key)
-  (handle-exceptions
-   e #f
-   (alist-ref key (with-input-from-file "/etc/nanolog.config.scm" read))))
-
+    (error "usage: [msg...] [-u http://host.com:port] [/some/path/for/tagging] [-d (debug)]"))
 
 ;; #f or string
 (define (mac interface)
   (let ((file (conc  "/sys/class/net/" interface "/address")))
    (and (regular-file? file)
         (with-input-from-file file read-line))))
+
+(define session-id
+  (let ((sid (string-join
+              (list-tabulate 10
+                             (lambda (x) (string-pad
+                                     (format #f "~x" (random 256)) 2 #\0)))
+              "")))
+    (lambda () sid)))
+
+
+(define (default-config key)q
+  (handle-exceptions
+   e (begin (print "***** error when reading /etc/nanolog.config.scm")
+            (raise e))
+   (alist-ref key (eval `(begin ,@(with-input-from-file "/etc/nanolog.config.scm"
+                                    (lambda () (port-map identity read))))))))
+
+(define (default-base-url) (string-intersperse (default-config 'url) ""))
+(define (config-headers) (default-config 'headers))
 ;; (map mac '("wlan0" "eth0" "gone"))
 
 (define path (make-parameter (or (find (cut string-prefix? "/" <>) (cla)) "/")))
-(define base-url (make-parameter (or (option-do "-u" (cla)) (default-config 'url))))
+(define base-url (make-parameter (or (option-do "-u" (cla)) (default-base-url))))
 (define msg (make-parameter (option-do "-m" (cla)))) ;; string or #f for stdin
 
 (define metadata
@@ -45,8 +60,7 @@
        (msgnum ,(let ((out msgnum)) (set! msgnum (add1 msgnum)) out)) ;; 0-indexed
        (pcmdline ,(cmdline (parent-process-id)))
        (ts ,(current-seconds))
-       (wlan0 , (or (mac "wlan0") "N/A"))
-       (eth0 , (or (mac "eth0") "N/A"))
+       ,@(config-headers)
        (cid "LyJI9G5891jnDhvO5UPMxW63MRI="))))) ;; 160-bit client id TODO: use git commit
 
 ;; (pp (metadata))

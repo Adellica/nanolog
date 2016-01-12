@@ -1,5 +1,8 @@
 (include "libnlog.scm")
 
+(if (member "-d" (command-line-arguments))
+    (debug? #t))
+
 (define msgs (map create-message (command-line-arguments)))
 
 (if (pair? msgs)

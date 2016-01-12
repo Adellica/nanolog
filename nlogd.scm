@@ -40,9 +40,10 @@
    (if (queue-empty? messages)
        (thread-sleep! 0.1)
        (let ((msg (queue-remove! messages)))
-        (if (not (process-message msg))
-            ;; could not send message, push it back and so we'll try
-            ;; again later
-            (queue-push-back! messages msg)
-            (pp `(msg sent ,msg))))))
+         (if (process-message msg)
+             (pp `(msg sent ,msg))
+             ;; could not send message, push it back and so we'll try
+             ;; again later
+             (queue-push-back! messages msg)))))
   (loop))
+

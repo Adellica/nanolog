@@ -60,13 +60,15 @@
     (newline port)
     (close-output-port port)))
 
-;; make sure x is serializable
+;; make sure x is serializable. convert uri-records to lists etc.
 (define (serializable x)
   (cond ((pair? x) (cons (serializable (car x)) (serializable (cdr x))))
         ((vector? x) (list->vector (map serializable (vector->list x))))
         ((or (uri? x) (relative-ref? x)) (uri->string x))
         (else x)))
 ;; (serializable `(1 #( ,(make-uri) ) 2))
+;; (serializable `((id . ,(uri-reference "http://a.com"))))
+
 
 (define (app-saver r)
   ;; try to make a serializeable scheme object from request (replace

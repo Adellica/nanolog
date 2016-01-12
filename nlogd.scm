@@ -21,7 +21,6 @@
         (let* ((msgstr (nn-recv socket))
                (msg (or (read-json msgstr)
                         (error "invalid JSON from nlog client" msgstr))))
-          (pp `(msg added ,msg))
           (queue-add! messages msg)
           (nn-send socket (conc "{\"enqueued\" : " (queue-length messages) "}"))))
        (loop)))))
@@ -46,7 +45,6 @@
        (thread-sleep! 0.1)
        (let ((msg (queue-remove! messages)))
          (if (process-message msg)
-             (pp `(msg sent ,msg))
              ;; could not send message, push it back and so we'll try
              ;; again later
              (queue-push-back! messages msg)))))

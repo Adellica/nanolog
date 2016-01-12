@@ -65,13 +65,13 @@
 ;; TODO: cla for relative url?
 (define (send-log-http message)
   (if (debug?)
-      (begin (print ";; this is a message HTTP request dump (content-length will appera in real request)")
-             (write-request (update-request (message->request message) port: (current-error-port)))
-             (write-json message (current-error-port))
-             (newline (current-error-port)))
-      (with-input-from-request (message->request message)
-                               (json->string (alist-delete 'url message))
-                               read-string)))
+      (begin (write-json message) (newline))
+      (for-each
+       (lambda (server)
+         (with-input-from-request server
+                                  (json->string (alist-delete 'url message))
+                                  read-string))
+       (servers))))
 
 
 ;; (send-log-http (create-message "oh oh"))

@@ -62,7 +62,7 @@
 
 ;; make sure x is serializable
 (define (serializable x)
-  (cond ((list? x) (map serializable x))
+  (cond ((pair? x) (cons (serializable (car x)) (serializable (cdr x))))
         ((vector? x) (list->vector (map serializable (vector->list x))))
         ((relative-ref? x) (uri->list x))
         (else x)))

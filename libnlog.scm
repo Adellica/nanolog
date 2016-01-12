@@ -1,5 +1,5 @@
 ;; log to a server directly without any daemoning
-(use http-client uri-common intarweb posix medea)
+(use http-client uri-common intarweb posix medea nanomsg)
 
 ;; linux-only obviously. string contains \x00-characters!
 (define (cmdline* pid)
@@ -18,6 +18,10 @@
 
 ;; ==================== config ====================
 ;; #f or a colon-formatted MAC string
+
+;; default sock file. override in setup-file
+(define ipc (make-parameter "ipc:///tmp/nanolog.sock"))
+
 (define (mac interface)
   (let ((file (conc  "/sys/class/net/" interface "/address")))
    (and (regular-file? file)
@@ -73,5 +77,11 @@
                                   read-string))
        (servers))))
 
+;; message is string (should be json) or alist
+(define (send-log-nanomsg message)
+  (define socket (nn-socket 'req))
+  (nn-connect socket (ipc))
+  (nn-send socket (if (string? message) message (json->string message)))
+  (print (nn-recv socket)))
 
 ;; (send-log-http (create-message "oh oh"))

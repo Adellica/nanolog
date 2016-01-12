@@ -40,11 +40,11 @@
     (lambda () sid)))
 
 (define servers (make-parameter '("http://localhost:8080/")))
-(define count (let ((c 0)) (lambda () (let ((cc c)) (set! c (+ 1 c)) cc))))
+(define counter (let ((c 0)) (lambda () (let ((cc c)) (set! c (+ 1 c)) cc))))
 (define ts current-seconds)
 (define properties
   (make-parameter
-   `((seq . ,count) ;; call count on every create-message
+   `((seq . ,counter) ;; call counter on every create-message
      (ts  . ,ts)    ;; call ts on every create-message
      (sid . ,(session-id)))))
 

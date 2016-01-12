@@ -7,6 +7,7 @@
   (filter (lambda (x) (not (string-prefix? "-" x)))
           (command-line-arguments)))
 
+;; timestamps will be added when `create-message` is run.
 (define msgs (map create-message (texts)))
 
 (if (pair? msgs)

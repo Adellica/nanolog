@@ -11,5 +11,5 @@
 (define msgs (map create-message (texts)))
 
 (if (pair? msgs)
-    (for-each send-log-http msgs)
+    (for-each send-log-nanomsg msgs)
     (port-for-each (lambda (line) (send-log-http (create-message line))) read-line))

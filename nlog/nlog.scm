@@ -65,14 +65,21 @@
 
 ;; (pp (metadata))
 
+(define (construct-request)
+  (make-request uri: (uri-reference (conc (base-url) (path)))
+                method: 'POST
+                headers: (headers (metadata))))
+
+(define (show-request)
+  (print ";; headers used for request (content-length and request body not shown)")
+  (write-request (update-request (construct-request)
+                                 port: (current-error-port)))
+  (void))
 ;; TODO: append mac address
 ;; TODO: cla for relative url?
 (define (send-log-http msg)
-  (with-input-from-request (make-request uri: (uri-reference (conc (base-url) (path)))
-                                         headers: (headers (metadata)))
-                           msg read-string))
-
-;; (send-log-http "hi from repl")
+  (if debug? (show-request))
+  (with-input-from-request (construct-request) msg read-string))
 
 (if (msg) ;; msg from cla?
     (send-log-http (msg)) ;; send it all

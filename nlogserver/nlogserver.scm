@@ -64,7 +64,7 @@
 (define (serializable x)
   (cond ((pair? x) (cons (serializable (car x)) (serializable (cdr x))))
         ((vector? x) (list->vector (map serializable (vector->list x))))
-        ((relative-ref? x) (uri->list x))
+        ((or (uri? x) (relative-ref? x)) (uri->string x))
         (else x)))
 ;; (serializable `(1 #( ,(make-uri) ) 2))
 

@@ -29,32 +29,32 @@
   (let ((sid (uid 10)))
     (lambda () sid)))
 
-;; ====================
+(define servers (make-parameter '("http://localhost:8080/")))
+(define count (let ((c 0)) (lambda () (let ((cc c)) (set! c (+ 1 c)) cc))))
+(define ts current-seconds)
+(define properties
+  (make-parameter
+   `((seq . ,count) ;; call count on every create-message
+     (ts  . ,ts)    ;; call ts on every create-message
+     (sid . ,(session-id)))))
 
+;; execute configure script (should overwrite parameters)
+(let ((config-file "/etc/nanolog.config.scm"))
+  (if (regular-file? config-file)
+      (load config-file)))
 
-(define (config #!optional key)
-  (define conf-alist
-    (handle-exceptions
-     e (begin (print "***** error when reading /etc/nanolog.config.scm")
-              (raise e))
-     (eval `(begin
-              ,@(with-input-from-file "/etc/nanolog.config.scm"
-                  (lambda () (port-map identity read)))))))
-  (if key (alist-ref key conf-alist) conf-alist))
+;; (format-properties)
+(define (format-properties #!optional (properties (properties)))
+  (map (lambda (pair) (cond ((procedure? (cdr pair)) (cons (car pair) ((cdr pair))))
+                       (else pair)))
+       properties))
 
-
+;; (define message (create-message "i like cake"))
 (define create-message
   (let ((msgnum 0))
     (lambda (body)
-      ;; TODO: add client version identifier
-      `((msgnum . ,(let ((out msgnum)) (set! msgnum (add1 msgnum)) out)) ;; 0-indexed
-        (pcmdline . ,(cmdline (parent-process-id)))
-        (ts . ,(current-seconds))
-        (body . ,body)
-        ,@ (config)))))
-
-;; (define message (create-message "i like cake"))
-;; (pp message)
+      ;; TODO: add client version identifier?
+      `((body . ,body) ,@(format-properties)))))
 
 (define (message->request message)
   (make-request uri: (uri-reference (alist-ref 'url message))

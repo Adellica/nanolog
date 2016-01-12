@@ -5,6 +5,9 @@
 (compile nlog.scm)
 (install-program 'nlog '("nlog"))
 
+(compile nlogd.scm)
+(install-program 'nlogd '("nlogd"))
+
 ;; TODO: compile libnlog so
 ;; TODO: compile nlog program
 ;; TODO: compile nlogd program

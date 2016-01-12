@@ -67,13 +67,15 @@
 
 ;; TODO: append mac address
 ;; TODO: cla for relative url?
+;; message is alist or string (string should be JSON then)
 (define (send-log-http message)
   (if (debug?)
       (begin (write-json message) (newline))
       (for-each
        (lambda (server)
          (with-input-from-request server
-                                  (json->string (alist-delete 'url message))
+                                  (if (string? message) message
+                                      (json->string message))
                                   read-string))
        (servers))))
 

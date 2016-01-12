@@ -2,6 +2,10 @@
 
 (use nanomsg medea)
 
+(define verbose? (make-parameter #f))
+
+(if (member "-d" (command-line-arguments))
+    (verbose? #t))
 
 (define socket (nn-socket 'rep))
 (nn-bind socket (ipc))
@@ -21,6 +25,7 @@
         (let* ((msgstr (nn-recv socket))
                (msg (or (read-json msgstr)
                         (error "invalid JSON from nlog client" msgstr))))
+          (if (verbose?) (pp `(msg added ,msg)))
           (queue-add! messages msg)
           (nn-send socket (conc "{\"enqueued\" : " (queue-length messages) "}"))))
        (loop)))))
@@ -45,6 +50,7 @@
        (thread-sleep! 0.1)
        (let ((msg (queue-remove! messages)))
          (if (process-message msg)
+             (if (verbose?) (pp `(msg sent ,msg)))
              ;; could not send message, push it back and so we'll try
              ;; again later
              (queue-push-back! messages msg)))))

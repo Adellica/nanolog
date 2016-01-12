@@ -11,8 +11,8 @@
 (define debug? (make-parameter #f))
 
 
-;; ==================== config aids ====================
-;; #f or string
+;; ==================== config ====================
+;; #f or a colon-formatted MAC string
 (define (mac interface)
   (let ((file (conc  "/sys/class/net/" interface "/address")))
    (and (regular-file? file)

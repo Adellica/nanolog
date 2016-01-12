@@ -10,6 +10,12 @@
 
 (define debug? (make-parameter #f))
 
+;; default seed is second precision. this creates problems when we
+;; spawn nlog multiple times within the same second.
+(randomize (inexact->exact (floor (+ (current-seconds)
+                                     (current-milliseconds)
+                                     (current-process-id)))))
+
 ;; generate a random hex-string of length n
 (define (uid n)
   (string-join

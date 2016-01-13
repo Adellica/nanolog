@@ -50,6 +50,7 @@
       #f)
    (e ()
       (pp (condition->list e) (current-error-port))
+      (backoff!)
       #f)))
 
 (let loop ()

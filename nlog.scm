@@ -17,24 +17,29 @@
   (filter (lambda (x) (not (string-prefix? "-" x)))
           (command-line-arguments)))
 
-;; (cla->msg '("text" "field=1" "more text" "field=2"))
+
+(define (msg-append alst key value)
+
+  (define (vector-append v1 v2)
+    (list->vector (append (vector->list v1) (vector->list v2))))
+
+  (alist-update key
+                (let ((old (alist-ref key alst)))
+                  (if old
+                      (vector-append (if (vector? old) old (vector old)) (vector value))
+                      value))
+                alst))
+
+;; (cla->msg '("text" "field=1" "more text" "field=2" "k=v"))
 (define (cla->msg args)
 
-  (define (alist-vector-append alst key value)
-
-    (define (vector-append v1 v2)
-      (list->vector (append (vector->list v1) (vector->list v2))))
-
-    (alist-update key
-                  (vector-append (or (alist-ref key alst) (vector)) (vector value))
-                  alst))
   (fold (lambda (x s)
           (let ((components (string-split x "=")))
             (if (eq? 2 (length components))
-                (alist-vector-append s
+                (msg-append s
                                      (string->symbol (car components))
                                      (cadr components))
-                (alist-vector-append s 'body x))))
+                (msg-append s 'body x))))
         '()
         args))
 

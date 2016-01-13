@@ -17,11 +17,14 @@
   (filter (lambda (x) (not (string-prefix? "-" x)))
           (command-line-arguments)))
 
-
+;; append values onto message. if key doesn't exist in alst, behaves
+;; like alist-update (add it). if it does exist, it'll make it into a
+;; vector if it needs to and place the new value at the end of it.
 (define (msg-append alst key value)
 
   (define (vector-append v1 v2)
-    (list->vector (append (vector->list v1) (vector->list v2))))
+    (list->vector (append (vector->list v1)
+                          (vector->list v2))))
 
   (alist-update key
                 (let ((old (alist-ref key alst)))
@@ -32,13 +35,12 @@
 
 ;; (cla->msg '("text" "field=1" "more text" "field=2" "k=v"))
 (define (cla->msg args)
-
   (fold (lambda (x s)
           (let ((components (string-split x "=")))
             (if (eq? 2 (length components))
                 (msg-append s
-                                     (string->symbol (car components))
-                                     (cadr components))
+                            (string->symbol (car components))
+                            (cadr components))
                 (msg-append s 'body x))))
         '()
         args))

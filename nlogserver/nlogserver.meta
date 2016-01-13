@@ -1,4 +1,4 @@
 ;; -*- scheme -*-
 ((author Adellica)
  (license "MIT")
- (depends nrepl spiffy uri-common intarweb persistent-hash-map))
+ (depends nrepl spiffy uri-common intarweb medea))

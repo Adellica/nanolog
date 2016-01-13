@@ -1,21 +1,18 @@
-FROM adellica/chicken
-RUN apt-get update && apt-get -y install git
+## Dockerfile for nlogserver
+## typically ran like this:
+## docker build -t adellica/nlogserver .
 
-# should be ran automatically by chicken-install, but this saves us
-# from installing all dependencies each time.
-RUN chicken-install nrepl spiffy matchable intarweb uri-common medea clojurian filepath test crypt
-RUN apt-get -y install libssl-dev
-RUN chicken-install openssl
-RUN chicken-install persistent-hash-map
+FROM adellica/base
 
-RUN git clone https://github.com/Adellica/reser.git && cd reser && chicken-install -s && cd .. && rm -r reser
+RUN mkdir /etc/service/nlogserver
+RUN printf "#!/bin/sh \n\
+exec nlogserver /var/log/nlogserver 443 --ssl \
+" > /etc/service/nlogserver/run && \
+  chmod a+x /etc/service/nlogserver/run
 
-EXPOSE 8080
-ENTRYPOINT  ["/usr/local/bin/nlogserver"]
-CMD []
+EXPOSE 443
 
 ADD . /tmp/nlogserver
-
 RUN cd /tmp/nlogserver && \
     chicken-install -s && \
     rm -r /tmp/nlogserver

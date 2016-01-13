@@ -66,8 +66,11 @@
        properties))
 
 ;; (define message (create-message "i like cake"))
-(define (create-message body)
-  `((body . ,body) ,@(format-properties)))
+;; msg can be strings or alists (plain json)
+(define (create-message msg)
+  `(,@(if (string? msg) `((body . ,msg))
+          msg)
+    ,@(format-properties)))
 
 (define (message->request message)
   (make-request uri: (uri-reference (alist-ref 'url message))

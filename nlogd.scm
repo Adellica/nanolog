@@ -42,6 +42,8 @@
 (define (process-message message)
   (condition-case
    (begin (send-log-http message)
+          (if (not (eq? 1 *backoff*))
+              (print "nlog: servers back online"))
           (clear-backoff!))
    (e (exn i/o net)
       (print "nlogd error: "

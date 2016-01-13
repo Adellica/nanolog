@@ -57,7 +57,9 @@
   (if (regular-file? config-file)
       (load config-file)))
 
-;; (format-properties)
+;; make turn procedure values into their call-results (they should
+;; return JSON-serializable values).
+;; (pp (format-properties))
 (define (format-properties #!optional (properties (properties)))
   (map (lambda (pair) (cond ((procedure? (cdr pair)) (cons (car pair) ((cdr pair))))
                        (else pair)))

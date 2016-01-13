@@ -66,11 +66,8 @@
        properties))
 
 ;; (define message (create-message "i like cake"))
-(define create-message
-  (let ((msgnum 0))
-    (lambda (body)
-      ;; TODO: add client version identifier?
-      `((body . ,body) ,@(format-properties)))))
+(define (create-message body)
+  `((body . ,body) ,@(format-properties)))
 
 (define (message->request message)
   (make-request uri: (uri-reference (alist-ref 'url message))

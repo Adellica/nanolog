@@ -10,6 +10,7 @@
 (define socket (nn-socket 'rep))
 (nn-bind socket (ipc))
 (print "nlogd: listening on " (ipc))
+(print "nlogd: proxying messages to " (servers))
 
 ;; TODO: use a thread-safe queue here.
 (define messages (make-queue))

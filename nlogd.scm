@@ -30,14 +30,23 @@
           (nn-send socket (conc "{\"enqueued\" : " (queue-length messages) "}"))))
        (loop)))))
 
+(define *backoff* 1)
+;; max 1024 seconds ~17min
+(define (backoff!)
+  (thread-sleep! *backoff*)
+  (set! *backoff* (min (* 10 #|minutes|# 60) (* *backoff* 2))))
+(define (clear-backoff!)
+  (set! *backoff* 1))
+
 (define (process-message message)
   (condition-case
-   (send-log-http message)
+   (begin (send-log-http message)
+          (clear-backoff!))
    (e (exn i/o net)
       (print "nlogd error: "
-             (get-condition-property e 'exn 'message))
-      ;; calm down a bit
-      (thread-sleep! 1)
+             (get-condition-property e 'exn 'message)
+             " (sleeping for " *backoff* " seconds)")
+      (backoff!)
       #f)
    (e ()
       (pp (condition->list e) (current-error-port))

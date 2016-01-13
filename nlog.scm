@@ -17,9 +17,25 @@
   (filter (lambda (x) (not (string-prefix? "-" x)))
           (command-line-arguments)))
 
-;; timestamps will be added when `create-message` is run.
-(define msgs (map create-message (texts)))
+;; (cla->msg '("text" "field=1" "more text" "field=2"))
+(define (cla->msg args)
 
-(if (pair? msgs)
-    (for-each send-log msgs)
-    (port-for-each (lambda (line) (send-log (create-message line))) read-line))
+  (define (alist-vector-append alst key value)
+
+    (define (vector-append v1 v2)
+      (list->vector (append (vector->list v1) (vector->list v2))))
+
+    (alist-update key
+                  (vector-append (or (alist-ref key alst) (vector)) (vector value))
+                  alst))
+  (fold (lambda (x s)
+          (let ((components (string-split x "=")))
+            (if (eq? 2 (length components))
+                (alist-vector-append s
+                                     (string->symbol (car components))
+                                     (cadr components))
+                (alist-vector-append s 'body x))))
+        '()
+        args))
+
+(send-log (create-message (cla->msg (texts))))

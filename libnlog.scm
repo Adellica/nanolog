@@ -79,7 +79,6 @@
 
 
 (define (debug-print message)
-  (print ";; message dump")
   (write-json message)
   (newline))
 

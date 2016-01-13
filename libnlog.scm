@@ -97,11 +97,20 @@
                                   read-string))
        (servers))))
 
+(define (assert-valid-ipc #!optional (endpoint (ipc)))
+  (define ipc? (string-prefix? "ipc://" endpoint))
+  (if ipc?
+      (if (not (socket? (substring endpoint (string-length "ipc://"))))
+          (error "nonexisting ipc (nlogd running?) see `ipc` config parameter)"
+                 endpoint))
+      #t))
+
 ;; message is string (should be json) or alist
 (define (send-log-nanomsg message)
   (if (debug?)
       (debug-print message)
       (begin
+        (assert-valid-ipc)
         (define socket (nn-socket 'req))
         (nn-connect socket (ipc))
         (nn-send socket (if (string? message) message (json->string message)))

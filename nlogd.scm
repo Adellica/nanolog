@@ -18,7 +18,7 @@
   (thread-start!
    (lambda ()
      (let loop ()
-       ;; expecting message SCHEME as string
+       ;; expecting message as JSON string
        (handle-exceptions
         e (begin (pp (condition->list e))
                  (thread-sleep! 1))

@@ -20,7 +20,4 @@ This is the `nanolog` client daemon. It accepts messages from IPC and forwards t
 
 ## config
 
-Want to test nlogd / nlog? Try this:
-```
-$ echo '((url . "http://127.0.0.1:8080/"))' >> /etc/nanolog.config.scm
-```
+See `etc/nanolog.config.scm` for examples/documentation.

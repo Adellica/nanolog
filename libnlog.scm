@@ -116,6 +116,6 @@
             (assert-valid-ipc)
             (nn-send socket
                      (if (string? message) message (json->string message)))
-            (print (nn-recv socket)))))))
+            (print "nlog: " (nn-recv socket)))))))
 
 ;; (send-log-http (create-message "oh oh"))

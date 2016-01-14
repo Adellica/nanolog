@@ -8,9 +8,10 @@
 (if (member "-c" (command-line-arguments))
     (set! send-log send-log-http))
 
-(if (member "-h" (command-line-arguments))
-    (begin (print "usage: [-d / debug] [-c / no daemon] [msg1 ...]\n"
-                  "without msg arguments, sends line-by-line from stdin")
+(if (or (null? (command-line-arguments))
+        (member "-h" (command-line-arguments)))
+    (begin (print "usage: [-d / debug] [-c / no daemon] [msg1 ...] [-]\n"
+                  "when `-` is specified, sends lines from stdin")
            (exit 0)))
 
 (define (texts)
@@ -45,4 +46,13 @@
         '()
         args))
 
-(send-log (create-message (cla->msg (texts))))
+(define (send-stdin)
+  (define parent (cla->msg (texts)))
+  (port-for-each
+   (lambda (line)
+     (send-log (create-message (alist-update 'line line parent))))
+   read-line))
+
+(if (member "-" (command-line-arguments))
+    (send-stdin)
+    (send-log (create-message (cla->msg (texts)))))

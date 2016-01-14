@@ -105,14 +105,17 @@
       #t))
 
 ;; message is string (should be json) or alist
-(define (send-log-nanomsg message)
-  (if (debug?)
-      (debug-print message)
-      (begin
-        (assert-valid-ipc)
-        (define socket (nn-socket 'req))
-        (nn-connect socket (ipc))
-        (nn-send socket (if (string? message) message (json->string message)))
-        (print (nn-recv socket)))))
+(define send-log-nanomsg
+  (let ()
+    (define socket (nn-socket 'req))
+    (nn-connect socket (ipc))
+    (lambda (message)
+      (if (debug?)
+          (debug-print message)
+          (begin
+            (assert-valid-ipc)
+            (nn-send socket
+                     (if (string? message) message (json->string message)))
+            (print (nn-recv socket)))))))
 
 ;; (send-log-http (create-message "oh oh"))

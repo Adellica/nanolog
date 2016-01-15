@@ -24,11 +24,18 @@
         e (begin (pp (condition->list e))
                  (thread-sleep! 1))
         (let* ((msgstr (nn-recv socket))
-               (msg (or (read-json msgstr)
-                        (error "invalid JSON from nlog client" msgstr))))
-          (if (verbose?) (pp `(msg added ,msg)))
-          (queue-add! messages msg)
-          (nn-send socket (conc "{\"enqueued\" : " (queue-length messages) "}"))))
+               (msg (read-json msgstr)))
+          (if msg
+              (begin
+                (if (verbose?) (pp `(msg added ,msg)))
+                (queue-add! messages msg)
+                (nn-send socket
+                         (conc "{\"enqueued\" : "
+                               (queue-length messages)
+                               "}")))
+              (begin
+                (if (verbose?) (pp `(msg failed ,msgstr)))
+                (nn-send socket (json->string `((error . "invalid json"))))))))
        (loop)))))
 
 (define *backoff* 1)

@@ -29,10 +29,7 @@
               (begin
                 (if (verbose?) (pp `(msg added ,msg)))
                 (queue-add! messages msg)
-                (nn-send socket
-                         (conc "{\"enqueued\" : "
-                               (queue-length messages)
-                               "}")))
+                (nn-send socket (json->string `((enqueued . ,(queue-length messages))))))
               (begin
                 (if (verbose?) (pp `(msg failed ,msgstr)))
                 (nn-send socket (json->string `((error . "invalid json"))))))))

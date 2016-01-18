@@ -1,2 +1,4 @@
 ;; -*- scheme -*-
-((author "Adellica"))
+((author "Adellica")
+ (needs ;; openssl ;; <-- for https nlogservers
+  http-client medea intarweb uri-common))
